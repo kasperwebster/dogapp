@@ -12,17 +12,26 @@ import {
   Container,
   Paper,
   Button,
-  Link
+  Link,
+  AppBar,
+  Toolbar,
+  Menu,
+  MenuItem,
+  Avatar
 } from '@mui/material'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import Map from './components/Map'
 import ReportForm from './components/ReportForm'
 import ReportsList from './components/ReportsList'
 import ReportMetrics from './components/ReportMetrics'
+import AdminDashboard from './components/AdminDashboard'
+import AuthPage from './components/AuthPage'
 import { Incident, ReportFormData } from './types'
 import './App.css'
 import { useTheme } from '@mui/material/styles'
-import { Close } from '@mui/icons-material'
+import { Close, AccountCircle } from '@mui/icons-material'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { incidentService } from './services/api'
 
 const STORAGE_KEY = 'dogapp_incidents';
 
@@ -31,48 +40,58 @@ const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 };
 
-function App() {
+// Main App component wrapped with AuthProvider
+function AppWithAuth() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+// App content with authentication context
+function AppContent() {
   const theme = useTheme();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState('')
   const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(undefined)
   const [activeTab, setActiveTab] = useState(0)
+  const [showAuthPage, setShowAuthPage] = useState(false)
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false)
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const reportSectionRef = useRef<HTMLDivElement>(null)
   
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  // Load incidents from localStorage on component mount
+  // Load incidents from API on component mount
   useEffect(() => {
-    try {
-      const savedIncidents = localStorage.getItem(STORAGE_KEY)
-      if (savedIncidents) {
-        const parsedIncidents = JSON.parse(savedIncidents)
-        if (Array.isArray(parsedIncidents)) {
-          setIncidents(parsedIncidents)
-          console.log('Loaded incidents from localStorage:', parsedIncidents.length)
-        } else {
-          console.error('Saved incidents is not an array, resetting to empty array')
-          setIncidents([])
-        }
-      }
-    } catch (error) {
-      console.error('Error loading incidents from localStorage:', error)
-      setIncidents([])
-    }
-  }, [])
+    fetchIncidents();
+  }, []);
 
-  // Save incidents to localStorage whenever they change
-  useEffect(() => {
-    if (incidents.length > 0) {
+  const fetchIncidents = async () => {
+    try {
+      const data = await incidentService.getIncidents();
+      setIncidents(data);
+      console.log('Loaded incidents from API:', data.length);
+    } catch (error) {
+      console.error('Error loading incidents from API:', error);
+      // Fallback to localStorage if API fails
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(incidents))
-        console.log('Saved incidents to localStorage:', incidents.length)
-      } catch (error) {
-        console.error('Error saving incidents to localStorage:', error)
+        const savedIncidents = localStorage.getItem('dogapp_incidents');
+        if (savedIncidents) {
+          const parsedIncidents = JSON.parse(savedIncidents);
+          if (Array.isArray(parsedIncidents)) {
+            setIncidents(parsedIncidents);
+            console.log('Loaded incidents from localStorage:', parsedIncidents.length);
+          }
+        }
+      } catch (localError) {
+        console.error('Error loading incidents from localStorage:', localError);
       }
     }
-  }, [incidents])
+  };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -92,43 +111,65 @@ function App() {
     setMapCenter([lat, lng])
   }
 
-  const handleReportSubmit = (data: ReportFormData) => {
+  const handleReportSubmit = async (data: ReportFormData) => {
     try {
-      const now = new Date()
-      const newIncident: Incident = {
-        id: generateId(),
-        latitude: mapCenter?.[0] || 0,
-        longitude: mapCenter?.[1] || 0,
-        date: data.date,
-        time: data.time,
-        description: data.description,
-        location: data.location,
-        reportedBy: data.reporterName || 'Anonymous',
-        dogName: data.dogName || undefined,
-        images: [],
-        verified: false,
-        helpfulCount: 0,
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-      }
+      // If authenticated, use the API
+      if (isAuthenticated) {
+        const incidentData = {
+          title: data.description.substring(0, 50) + (data.description.length > 50 ? '...' : ''),
+          description: data.description,
+          location: {
+            address: data.location,
+            lat: mapCenter?.[0] || 0,
+            lng: mapCenter?.[1] || 0,
+          },
+          dogBreed: data.dogName || 'Unknown',
+          severity: 'medium',
+          date: new Date(data.date + 'T' + data.time),
+        };
 
-      // Create a new array with the new incident at the beginning
-      const updatedIncidents = [newIncident, ...incidents];
+        const newIncident = await incidentService.createIncident(incidentData);
+        
+        // Update local state with the new incident
+        setIncidents([newIncident, ...incidents]);
+      } else {
+        // Fallback to localStorage if not authenticated
+        const now = new Date();
+        const newIncident: Incident = {
+          id: generateId(),
+          latitude: mapCenter?.[0] || 0,
+          longitude: mapCenter?.[1] || 0,
+          date: data.date,
+          time: data.time,
+          description: data.description,
+          location: data.location,
+          reportedBy: data.reporterName || 'Anonymous',
+          dogName: data.dogName || undefined,
+          images: [],
+          verified: false,
+          helpfulCount: 0,
+          createdAt: now.toISOString(),
+          updatedAt: now.toISOString(),
+        };
+
+        // Create a new array with the new incident at the beginning
+        const updatedIncidents = [newIncident, ...incidents];
+        
+        // Update state with the new array
+        setIncidents(updatedIncidents);
+        
+        // Immediately save to localStorage
+        localStorage.setItem('dogapp_incidents', JSON.stringify(updatedIncidents));
+      }
       
-      // Update state with the new array
-      setIncidents(updatedIncidents);
+      setIsDrawerOpen(false);
+      setSelectedLocation('');
+      setActiveTab(0);
+      setMapCenter(undefined);
       
-      // Immediately save to localStorage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedIncidents));
-      
-      setIsDrawerOpen(false)
-      setSelectedLocation('')
-      setActiveTab(0)
-      setMapCenter(undefined)
-      
-      console.log('Added new incident, total count:', updatedIncidents.length);
+      console.log('Added new incident');
     } catch (error) {
-      console.error('Error creating new incident:', error)
+      console.error('Error creating new incident:', error);
     }
   }
 
@@ -139,23 +180,32 @@ function App() {
     }
   }
 
-  const handleMarkHelpful = (id: string) => {
+  const handleMarkHelpful = async (id: string) => {
     try {
-      const updatedIncidents = incidents.map(incident => {
-        if (incident.id === id) {
-          return {
-            ...incident,
-            helpfulCount: (incident.helpfulCount || 0) + 1,
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return incident;
-      });
-      
-      setIncidents(updatedIncidents);
-      
-      // Immediately save to localStorage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedIncidents));
+      if (isAuthenticated) {
+        // Use API if authenticated
+        const updatedIncident = await incidentService.markHelpful(id);
+        
+        // Update local state
+        setIncidents(incidents.map(incident => 
+          incident.id === id ? { ...incident, helpfulCount: updatedIncident.helpfulCount } : incident
+        ));
+      } else {
+        // Fallback to localStorage
+        const updatedIncidents = incidents.map(incident => {
+          if (incident.id === id) {
+            return {
+              ...incident,
+              helpfulCount: (incident.helpfulCount || 0) + 1,
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return incident;
+        });
+        
+        setIncidents(updatedIncidents);
+        localStorage.setItem('dogapp_incidents', JSON.stringify(updatedIncidents));
+      }
       
       console.log(`Marked incident ${id} as helpful`);
     } catch (error) {
@@ -164,6 +214,11 @@ function App() {
   }
 
   const handleReportClick = () => {
+    if (!isAuthenticated) {
+      setShowAuthPage(true);
+      return;
+    }
+    
     if (isMobile) {
       setIsDrawerOpen(true)
       setActiveTab(1)
@@ -177,13 +232,123 @@ function App() {
     }
   }
 
-  // For debugging - log incidents on render
-  console.log('Current incidents:', incidents);
+  const handleUserMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleAdminDashboard = () => {
+    setShowAdminDashboard(true);
+    handleUserMenuClose();
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleUserMenuClose();
+    setShowAdminDashboard(false);
+  };
+
+  // If showing auth page
+  if (showAuthPage) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Toolbar>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Psyjaciele
+              </Typography>
+              <Button color="inherit" onClick={() => setShowAuthPage(false)}>
+                Back to Map
+              </Button>
+            </Toolbar>
+          </AppBar>
+          <AuthPage />
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
+  // If showing admin dashboard
+  if (showAdminDashboard && isAdmin) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Toolbar>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Psyjaciele Admin
+              </Typography>
+              <Button color="inherit" onClick={() => setShowAdminDashboard(false)}>
+                Back to Map
+              </Button>
+            </Toolbar>
+          </AppBar>
+          <AdminDashboard />
+        </Box>
+      </ThemeProvider>
+    );
+  }
 
   return (
-    <ThemeProvider theme={useTheme()}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        {/* App Bar */}
+        <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Psyjaciele
+            </Typography>
+            {isAuthenticated ? (
+              <>
+                <IconButton
+                  size="large"
+                  edge="end"
+                  color="inherit"
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  onClick={handleUserMenuClick}
+                >
+                  <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                    {user?.username?.charAt(0).toUpperCase() || <AccountCircle />}
+                  </Avatar>
+                </IconButton>
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={anchorEl}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorEl)}
+                  onClose={handleUserMenuClose}
+                >
+                  {isAdmin && (
+                    <MenuItem onClick={handleAdminDashboard}>Admin Dashboard</MenuItem>
+                  )}
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <Button color="inherit" onClick={() => setShowAuthPage(true)}>
+                Login
+              </Button>
+            )}
+          </Toolbar>
+        </AppBar>
+
         {/* Hero Section */}
         <Box 
           sx={{ 
@@ -430,4 +595,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppWithAuth;

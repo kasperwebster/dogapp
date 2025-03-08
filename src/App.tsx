@@ -14,14 +14,12 @@ import {
   Button,
   Link
 } from '@mui/material'
-import MenuIcon from '@mui/icons-material/Menu'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import Map from './components/Map'
 import ReportForm from './components/ReportForm'
 import ReportsList from './components/ReportsList'
 import ReportMetrics from './components/ReportMetrics'
 import { Incident, ReportFormData } from './types'
-import theme from './theme'
 import './App.css'
 import { useTheme } from '@mui/material/styles'
 import { Close } from '@mui/icons-material'
@@ -76,7 +74,7 @@ function App() {
     }
   }, [incidents])
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
@@ -183,7 +181,7 @@ function App() {
   console.log('Current incidents:', incidents);
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={useTheme()}>
       <CssBaseline />
       <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         {/* Hero Section */}

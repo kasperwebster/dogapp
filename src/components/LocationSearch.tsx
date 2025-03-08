@@ -62,9 +62,9 @@ const LocationSearch = ({ value, onChange, pinLocation }: LocationSearchProps) =
 
   return (
     <Autocomplete<LocationResult | string>
-      freeSolo
+      freeSolo={false as any}
       value={value}
-      onChange={(event, newValue: string | LocationResult | null) => {
+      onChange={(_event, newValue: string | LocationResult | null) => {
         if (typeof newValue === 'string') {
           onChange(newValue);
         } else if (newValue) {
@@ -74,7 +74,7 @@ const LocationSearch = ({ value, onChange, pinLocation }: LocationSearchProps) =
         }
       }}
       inputValue={inputValue}
-      onInputChange={(event, newInputValue) => {
+      onInputChange={(_event, newInputValue) => {
         setInputValue(newInputValue);
       }}
       options={options}
@@ -112,7 +112,7 @@ const LocationSearch = ({ value, onChange, pinLocation }: LocationSearchProps) =
           }}
         />
       )}
-      renderOption={(props, option, state) => {
+      renderOption={(props, option, _state) => {
         if (typeof option === 'string') {
           return (
             <Box

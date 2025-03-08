@@ -6,8 +6,6 @@ import {
   Typography,
   IconButton,
   alpha,
-  Paper,
-  Container,
   Divider
 } from '@mui/material';
 import { PhotoCamera, Close, Send } from '@mui/icons-material';
@@ -30,8 +28,6 @@ const ReportForm = ({ onSubmit, initialLocation = '' }: ReportFormProps) => {
     images: []
   });
 
-  const [coordinates, setCoordinates] = useState<{ lat?: number; lng?: number }>({});
-
   useEffect(() => {
     if (initialLocation) {
       setFormData(prev => ({ ...prev, location: initialLocation }));
@@ -50,14 +46,10 @@ const ReportForm = ({ onSubmit, initialLocation = '' }: ReportFormProps) => {
       dogName: '',
       images: []
     });
-    setCoordinates({});
   };
 
-  const handleLocationChange = (location: string, lat?: number, lng?: number) => {
+  const handleLocationChange = (location: string, _lat?: number, _lng?: number) => {
     setFormData(prev => ({ ...prev, location }));
-    if (lat && lng) {
-      setCoordinates({ lat, lng });
-    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

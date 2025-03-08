@@ -30,7 +30,7 @@ A web application for reporting and tracking dog-related incidents in Warsaw. Th
 
 1. Clone the repository
    ```
-   git clone https://github.com/yourusername/DogApp.git
+   git clone https://github.com/kasperwebster/DogApp.git
    cd DogApp
    ```
 
@@ -50,7 +50,7 @@ A web application for reporting and tracking dog-related incidents in Warsaw. Th
 
 The app is automatically deployed to GitHub Pages when changes are pushed to the main branch.
 
-Visit the live app: https://yourusername.github.io/DogApp/
+Visit the live app: https://kasperwebster.github.io/DogApp/
 
 ## Contributing
 

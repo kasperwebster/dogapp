@@ -28,13 +28,13 @@ const ReportMetrics = ({ incidents }: ReportMetricsProps) => {
   }).length;
 
   return (
-    <Box sx={{ mb: 4 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+    <Box sx={{ mb: { xs: 2, sm: 4 } }}>
+      <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
+        <Grid item xs={4}>
           <Paper
             elevation={0}
             sx={{
-              p: 3,
+              p: { xs: 1.5, sm: 2, md: 3 },
               borderRadius: 2,
               border: 1,
               borderColor: 'divider',
@@ -51,21 +51,37 @@ const ReportMetrics = ({ incidents }: ReportMetricsProps) => {
               }
             }}
           >
-            <BarChart sx={{ fontSize: 48, color: 'primary.main', mb: 1.5 }} />
-            <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
+            <BarChart sx={{ fontSize: { xs: 32, sm: 40, md: 48 }, color: 'primary.main', mb: 1 }} />
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 700, 
+                color: 'primary.main', 
+                mb: 0.5,
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
+              }}
+            >
               {totalReports}
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
+            <Typography 
+              variant="subtitle1" 
+              color="text.secondary" 
+              sx={{ 
+                fontWeight: 500,
+                fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                textAlign: 'center'
+              }}
+            >
               Total Reports
             </Typography>
           </Paper>
         </Grid>
         
-        <Grid item xs={12} md={4}>
+        <Grid item xs={4}>
           <Paper
             elevation={0}
             sx={{
-              p: 3,
+              p: { xs: 1.5, sm: 2, md: 3 },
               borderRadius: 2,
               border: 1,
               borderColor: 'divider',
@@ -82,21 +98,37 @@ const ReportMetrics = ({ incidents }: ReportMetricsProps) => {
               }
             }}
           >
-            <Timeline sx={{ fontSize: 48, color: '#4caf50', mb: 1.5 }} />
-            <Typography variant="h3" sx={{ fontWeight: 700, color: '#4caf50', mb: 1 }}>
+            <Timeline sx={{ fontSize: { xs: 32, sm: 40, md: 48 }, color: '#4caf50', mb: 1 }} />
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 700, 
+                color: '#4caf50', 
+                mb: 0.5,
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
+              }}
+            >
               {last7DaysReports}
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
+            <Typography 
+              variant="subtitle1" 
+              color="text.secondary" 
+              sx={{ 
+                fontWeight: 500,
+                fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                textAlign: 'center'
+              }}
+            >
               Last 7 Days
             </Typography>
           </Paper>
         </Grid>
         
-        <Grid item xs={12} md={4}>
+        <Grid item xs={4}>
           <Paper
             elevation={0}
             sx={{
-              p: 3,
+              p: { xs: 1.5, sm: 2, md: 3 },
               borderRadius: 2,
               border: 1,
               borderColor: 'divider',
@@ -113,11 +145,27 @@ const ReportMetrics = ({ incidents }: ReportMetricsProps) => {
               }
             }}
           >
-            <CalendarMonth sx={{ fontSize: 48, color: '#ff9800', mb: 1.5 }} />
-            <Typography variant="h3" sx={{ fontWeight: 700, color: '#ff9800', mb: 1 }}>
+            <CalendarMonth sx={{ fontSize: { xs: 32, sm: 40, md: 48 }, color: '#ff9800', mb: 1 }} />
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 700, 
+                color: '#ff9800', 
+                mb: 0.5,
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
+              }}
+            >
               {last30DaysReports}
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
+            <Typography 
+              variant="subtitle1" 
+              color="text.secondary" 
+              sx={{ 
+                fontWeight: 500,
+                fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                textAlign: 'center'
+              }}
+            >
               Last 30 Days
             </Typography>
           </Paper>

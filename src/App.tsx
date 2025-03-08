@@ -187,7 +187,7 @@ function App() {
         {/* Hero Section */}
         <Box 
           sx={{ 
-            py: 6,
+            py: { xs: 3, sm: 4, md: 6 },
             position: 'relative',
             overflow: 'hidden',
             textAlign: 'center',
@@ -209,7 +209,8 @@ function App() {
               component="h1" 
               gutterBottom
               sx={{ 
-                mb: 3,
+                mb: { xs: 2, sm: 3 },
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
                 background: 'linear-gradient(45deg, #0666EB, #00D632)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -222,9 +223,11 @@ function App() {
               variant="h6" 
               color="text.secondary" 
               sx={{ 
-                mb: 4,
+                mb: { xs: 3, sm: 4 },
                 maxWidth: '800px',
-                mx: 'auto'
+                mx: 'auto',
+                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
+                px: { xs: 2, sm: 0 }
               }}
             >
               Help keep our furry friends safe in Warsaw. Report and track incidents of dog poisoning
@@ -238,10 +241,10 @@ function App() {
               startIcon={<WarningAmberIcon />}
               onClick={handleReportClick}
               sx={{ 
-                px: 4,
-                py: 1.5,
+                px: { xs: 3, sm: 4 },
+                py: { xs: 1, sm: 1.5 },
                 borderRadius: 8,
-                fontSize: '1.1rem'
+                fontSize: { xs: '1rem', sm: '1.1rem' }
               }}
             >
               Report an Incident
@@ -250,7 +253,11 @@ function App() {
         </Box>
 
         {/* Metrics Section */}
-        <Container maxWidth="xl" sx={{ mt: -3, mb: 5, px: { xs: 2, md: 4 } }}>
+        <Container maxWidth="xl" sx={{ 
+          mt: { xs: 2, sm: 3, md: 4 }, 
+          mb: 5, 
+          px: { xs: 2, md: 4 } 
+        }}>
           <ReportMetrics incidents={incidents} />
         </Container>
 
